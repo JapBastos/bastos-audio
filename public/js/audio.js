@@ -213,7 +213,7 @@ initStream.addEventListener('click', () => {
    });
 });
 // listen for clicks on the record button to begin the stream and recording
-initAudio.addEventListener('click', () => {
+recorderButton.addEventListener('click', () => {
   // the options object determining what media type(s) to capture
   let options = { 'audio': true, 'video': false };  
   // only start the recording stream if there is not another recording in progress
