@@ -1,6 +1,14 @@
 const url = 'http://localhost:3333'
 const socket = io(url, { transports : ['websocket'] });
 
+
+const getAudioContext =  () => {
+  AudioContext = window.AudioContext || window.webkitAudioContext;
+  const audioContext = new AudioContext();
+
+  return { audioContext };
+};
+
 const { audioContext } = getAudioContext();
 
 const playWhileLoading = (duration = 0) => {
@@ -24,48 +32,7 @@ const play = (resumeTime = 0) => {
   source.start(0, resumeTime);
 };
 
-// load file while socket
-socket.emit('track', (e) => {});
-ss(socket).on('track-stream', (stream, { stat }) => {
-  let rate = 0;
-  let isData = false;
-  stream.on('data', async (data) => {
-    const audioBufferChunk = await audioContext.decodeAudioData(withWaveHeader(data, 1, 6000));
-    const newaudioBuffer = (source && source.buffer)
-      ? appendBuffer(source.buffer, audioBufferChunk, audioContext)
-      : audioBufferChunk;
-    source = audioContext.createBufferSource();
-    source.buffer = newaudioBuffer;
-
-    const loadRate = (data.length * 100 ) / stat.size;
-    rate = rate + loadRate;
-    changeAudionState({ loadingProcess: rate, startedAt: startAt });
-
-    if(rate >= 100) {
-      clearInterval(whileLoadingInterval);
-      audioBuffer = source.buffer;
-      const inSec = (Date.now() - startAt) / 1000;
-      activeSource.stop();
-      play(inSec);
-      resolve({ play, stop, setVolume });
-    }
-    isData = true;
-    // first time load
-    if(isData && rate === loadRate) {
-      const duration = (100 / loadRate) * audioBufferChunk.duration;
-      setDuration(duration)
-    }
-  });
-});
-
 // const a=new Blob(this.dataViews,{type:"audio/wav"});
-
-const getAudioContext =  () => {
-  AudioContext = window.AudioContext || window.webkitAudioContext;
-  const audioContext = new AudioContext();
-
-  return { audioContext };
-};
 
 const loadFile = (props) => new Promise(async (resolve, reject) => {
  try {
@@ -122,6 +89,8 @@ const loadFile = (props) => new Promise(async (resolve, reject) => {
    // load file while socket
    socket.emit('track', (e) => {});
    ss(socket).on('track-stream', (stream, { stat }) => {
+     console.log('Deu certo!');
+     console.log('Id: ', stream.id);
      let rate = 0;
      let isData = false;
      stream.on('data', async (data) => {
